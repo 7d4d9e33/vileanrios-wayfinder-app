@@ -12,12 +12,10 @@
  * 6. Serve from verified cache
  */
 
-// CRITICAL: Import polyfills FIRST before any other imports
-// These must run before any dependency code that might reference Node.js globals
-import './module-polyfill';
-import './process-polyfill';
-import './buffer-polyfill';
+// CRITICAL: Import fetch and module polyfills FIRST before any other imports
+// fetch-polyfill must load before Zone.js to prevent Illegal invocation errors
 import './fetch-polyfill';
+import './module-polyfill';
 
 import { initializeWayfinder, isWayfinderReady, getConfig, waitForInitialization } from './wayfinder-instance';
 import { verifyIdentifier, getVerifiedContent, setVerificationConcurrency } from './manifest-verifier';
