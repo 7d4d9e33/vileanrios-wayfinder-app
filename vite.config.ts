@@ -1,6 +1,9 @@
+import { createRequire } from 'node:module'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+
+const require = createRequire(import.meta.url)
 
 // https://vite.dev/config/
 export default defineConfig(({ command }) => ({
@@ -30,7 +33,7 @@ export default defineConfig(({ command }) => ({
       // Provide browser-compatible polyfills for Node.js modules
       // Note: crypto-browserify doesn't work in Vite dev mode due to ESM issues
       // Crypto polyfills only applied in production build
-      util: 'util',
+      util: require.resolve('util/util.js'),
       ...(command === 'build' && {
         crypto: 'crypto-browserify',
         stream: 'stream-browserify',
@@ -44,7 +47,6 @@ export default defineConfig(({ command }) => ({
     global: 'globalThis',
     // Define process fully for service worker and other modules
     'process.env': '{}',
-    'process.browser': 'true',
     'process.version': '""',
   },
   build: {

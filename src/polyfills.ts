@@ -12,6 +12,7 @@ if (typeof window !== 'undefined') {
   if (!(window as any).process) {
     (window as any).process = {
       env: {},
+      browser: true,
       version: '',
       nextTick: (fn: () => void) => Promise.resolve().then(fn),
     };
