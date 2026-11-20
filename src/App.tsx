@@ -19,9 +19,18 @@ import {
 import { VerificationBlockedModal } from './components/VerificationBlockedModal';
 import { VerificationLoadingScreen } from './components/VerificationLoadingScreen';
 import { swMessenger } from './utils/serviceWorkerMessaging';
-import { getTrustedGateways, getRoutingGateways } from './utils/trustedGateways';
+import { getTrustedGateways, getRoutingGateways, getArioClient } from './utils/trustedGateways';
 import { gatewayHealth } from './utils/gatewayHealth';
 import type { VerificationEvent } from './service-worker/types';
+
+function fisherYatesShuffleArray<T>(items: T[]): T[] {
+  const shuffled = [...items];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
 
 // Separate component that only handles Wayfinder configuration
 function WayfinderWrapper({ children, gatewayRefreshCounter }: { children: React.ReactNode; gatewayRefreshCounter: number }) {
@@ -98,8 +107,7 @@ function WayfinderWrapper({ children, gatewayRefreshCounter }: { children: React
         // If all peers endpoints fail, try AR.IO SDK as fallback
         try {
           console.log('[WayfinderWrapper] Falling back to AR.IO SDK');
-          const { ARIO } = await import('@ar.io/sdk');
-          const ario = ARIO.mainnet();
+          const ario = getArioClient();
 
           const result = await ario.getGateways({ limit: 100 });
 
@@ -140,11 +148,7 @@ function WayfinderWrapper({ children, gatewayRefreshCounter }: { children: React
         }
 
         // Shuffle the gateways array using Fisher-Yates algorithm
-        const shuffled = [...healthyUrls];
-        for (let i = shuffled.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-        }
+        const shuffled = fisherYatesShuffleArray(healthyUrls);
 
         // Return random 20 gateways (or all if fewer than 20)
         return shuffled.slice(0, Math.min(20, shuffled.length)).map(url => new URL(url));
