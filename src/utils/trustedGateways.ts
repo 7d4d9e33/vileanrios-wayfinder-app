@@ -1,5 +1,15 @@
-import { ARIO } from '@ar.io/sdk';
+import { ARIO, createCircuitBreakerRpc, DEFAULT_SOLANA_RPC_URL } from '@ar.io/sdk';
 import type { GatewayWithStake } from '../types';
+
+let arioClient: ReturnType<typeof ARIO.init> | null = null;
+
+export function getArioClient() {
+  if (!arioClient) {
+    const rpc = createCircuitBreakerRpc({ primaryUrl: DEFAULT_SOLANA_RPC_URL });
+    arioClient = ARIO.init({ rpc });
+  }
+  return arioClient;
+}
 
 const CACHE_KEY = 'wayfinder-trusted-gateways-v2';
 const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
@@ -30,7 +40,7 @@ export async function getTrustedGateways(count: number = 3): Promise<GatewayWith
 
   // Fetch from AR.IO network
   try {
-    const ario = ARIO.mainnet();
+    const ario = getArioClient();
 
     // Fetch ALL gateways since the SDK can't sort by total stake (operator + delegated)
     const result = await ario.getGateways({
@@ -193,7 +203,7 @@ async function fetchPeersFromGateway(gatewayUrl: string): Promise<URL[]> {
  */
 async function fetchGatewaysFromSDK(): Promise<URL[]> {
   try {
-    const ario = ARIO.mainnet();
+    const ario = getArioClient();
 
     // Fetch active gateways from the network
     const result = await ario.getGateways({
